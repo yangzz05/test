@@ -40,6 +40,11 @@ APP_PY_URL="https://raw.githubusercontent.com/yangzz05/test/refs/heads/main/app.
 INDEX_HTML_URL="https://raw.githubusercontent.com/yangzz05/test/refs/heads/main/index.html"
 APP_PY_PATH="$PROJECT_DIR/app.py"
 INDEX_HTML_PATH="$PROJECT_DIR/templates/index.html"
+log_file="/var/log/$FLASK_APP_NAME.log"
+error_file="/var/log/$FLASK_APP_NAME.err"
+# Create log directory if it doesn't exist
+mkdir -p "$(dirname "$log_file")"
+mkdir -p "$(dirname "$error_file")"
 
 # --- [重构] 辅助命令执行函数 ---
 run_command() {
