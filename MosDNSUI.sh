@@ -43,8 +43,8 @@ INDEX_HTML_PATH="$PROJECT_DIR/templates/index.html"
 log_file="/var/log/$FLASK_APP_NAME.log"
 error_file="/var/log/$FLASK_APP_NAME.err"
 # Create log directory if it doesn't exist
-mkdir -p "$(dirname "$log_file")"
-mkdir -p "$(dirname "$error_file")"
+mkdir -p "$log_file"
+mkdir -p "$error_file"
 
 # --- [重构] 辅助命令执行函数 ---
 run_command() {
@@ -109,7 +109,7 @@ deploy_monitor() {
     
     # Alpine不需要创建www-data用户，使用已有的nobody用户
 
-    run_command "更新 apk 缓存..." apk update
+    # run_command "更新 apk 缓存..." apk update
     run_command "安装系统依赖..." apk add python3 py3-pip py3-flask py3-requests curl wget openrc || return 1
     
     log_step 2 5 "创建项目目录结构"
@@ -141,9 +141,6 @@ depend() {
     after firewall
 }
 
-start_pre() {
-    checkpath -f -o $command_user -m 0644 "$output_log" "$error_log"
-}
 EOF
     run_command "创建 OpenRC 服务文件..." chmod +x "$SYSTEMD_SERVICE_FILE" || return 1
 
