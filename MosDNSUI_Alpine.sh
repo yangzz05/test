@@ -1,15 +1,5 @@
 #!/bin/sh
 
-# MosDNS 独立监控面板 - 一键部署、更新、恢复脚本 (Alpine Linux 版本)
-# 原作者：ChatGPT & JimmyDADA & Phil Horse
-# Alpine 适配：AI Assistant
-# 版本：7.3-alpine (终极视觉修复版)
-# 特点：
-# - [UI/UX] 重构日志输出和命令执行函数，彻底解决终端乱码问题，输出更专业。
-# - 保持了所有核心功能：自动部署、更新、恢复、诊断。
-# - 适配 Alpine Linux：使用 apk 包管理器和 OpenRC 服务管理。
-
-# --- 定义颜色和样式 ---
 C_GREEN='\033[0;32m'
 C_YELLOW='\033[0;33m'
 C_RED='\033[0;31m'
