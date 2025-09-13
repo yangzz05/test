@@ -1,12 +1,16 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MosDNS 监控面板</title>
+    <title>MosDNS 面板</title>
+    <link rel="shortcut icon" href="/static/short.png" />
 
     <!-- Font Awesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+        integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <!-- Chart.js 和 datalabels 插件 -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
@@ -16,153 +20,693 @@
         /* === START OF FINAL CSS === */
         :root {
             /* 主题变量，会由 JS 动态修改 */
-            --bg-color: #f7f9fd; --text-color: #2c3e50; --card-bg: #ffffff;
+            --bg-color: #f7f9fd;
+            --text-color: #2c3e50;
+            --card-bg: #ffffff;
             /* [MODIFIED] 优化了阴影效果，使其更柔和 */
-            --card-shadow: 0 6px 18px rgba(0, 0, 0, 0.08); --border-color: #e0e6ec;
-            --accent-color: #4a90e2; --error-color: #e74c3c; --label-color: #7f8c8d;
-            --value-color: #34495e; --control-bg: #f0f4f7; --control-border: #d5dce2;
-            --control-text: #5e727e; --control-hover-bg: #e5edf3;
-            --control-active-bg: var(--accent-color); --control-active-text: #ffffff;
-            --status-green: #2ecc71; --status-yellow: #f1c40f;
-            --gradient-start: #4a90e2; --gradient-mid: #2e86de; --gradient-end: #4a90e2;
+            --card-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+            --border-color: #e0e6ec;
+            --accent-color: #4a90e2;
+            --error-color: #e74c3c;
+            --label-color: #7f8c8d;
+            --value-color: #34495e;
+            --control-bg: #f0f4f7;
+            --control-border: #d5dce2;
+            --control-text: #5e727e;
+            --control-hover-bg: #e5edf3;
+            --control-active-bg: var(--accent-color);
+            --control-active-text: #ffffff;
+            --status-green: #2ecc71;
+            --status-yellow: #f1c40f;
+            --gradient-start: #4a90e2;
+            --gradient-mid: #2e86de;
+            --gradient-end: #4a90e2;
             /* [MODIFIED] 调整了主要圆角，使其更统一 */
-            --radius-main: 0.8rem; --radius-bar: 0.2rem; --radius-control: 0.5rem;
-            --danger-bg-color: rgba(231, 76, 60, 0.1); --danger-border-color: rgba(231, 76, 60, 0.3);
-            --danger-text-color: #e74c3c; --danger-hover-bg-color: #e74c3c; --danger-hover-text-color: #ffffff;
+            --radius-main: 0.8rem;
+            --radius-bar: 0.2rem;
+            --radius-control: 0.5rem;
+            --danger-bg-color: rgba(231, 76, 60, 0.1);
+            --danger-border-color: rgba(231, 76, 60, 0.3);
+            --danger-text-color: #e74c3c;
+            --danger-hover-bg-color: #e74c3c;
+            --danger-hover-text-color: #ffffff;
         }
 
         /* --- 基础与全局样式 --- */
-        html { font-size: 16px; scroll-behavior: smooth; }
-        body { font-family: 'SF Pro Text', 'system-ui', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif; margin: 0; padding: 2rem; background-color: var(--bg-color); color: var(--text-color); line-height: 1.6; transition: background-color 0.4s ease, color 0.4s ease; min-height: 100vh; display: flex; flex-direction: column; align-items: center; box-sizing: border-box; }
-        
+        html {
+            font-size: 16px;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'SF Pro Text', 'system-ui', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+            margin: 0;
+            /* [REMOVED] Padding is now applied to content containers directly */
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            transition: background-color 0.4s ease, color 0.4s ease;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
         /* --- 顶部 Header --- */
-        .header { text-align: center; width: 100%; max-width: 1200px; margin-bottom: 2rem; }
-        .header h1 { font-size: 2.2rem; color: var(--text-color); margin: 0 0 0.5rem 0; font-weight: 700; letter-spacing: -0.03em; }
-        .header .header-gradient-bar { width: 80px; height: 4px; margin: 0 auto 1.5rem auto; border-radius: var(--radius-bar); background-image: linear-gradient(to right, var(--gradient-start), var(--gradient-mid), var(--gradient-end)); }
-        .card-title-gradient-bar { width: 100%; height: 3px; border-radius: var(--radius-bar); background-image: linear-gradient(to right, var(--gradient-start), var(--gradient-mid), var(--gradient-end), var(--gradient-start)); background-size: 200% auto; animation: gradient-scroll 6s linear infinite; transition: background-image 0.4s ease; }
-        @keyframes gradient-scroll { 100% { background-position: 100% 0%; } }
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--bg-color);
+            transition: background 0.3s, opacity 0.3s;
+            text-align: center;
+            width: 100%;
+            /* [ADDED] Padding to keep content aligned */
+            padding: 0 2rem;
+            box-sizing: border-box;
+        }
+
+        .header h1 {
+            font-size: 2.2rem;
+            color: var(--text-color);
+            margin: 0 0 0.5rem 0;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            backdrop-filter: blur(2px);
+        }
+
+        .header .header-gradient-bar {
+            width: 80px;
+            height: 4px;
+            margin: 0 auto 1.5rem auto;
+            border-radius: var(--radius-bar);
+            background-image: linear-gradient(to right, var(--gradient-start), var(--gradient-mid), var(--gradient-end));
+        }
+
+        .card-title-gradient-bar {
+            width: 100%;
+            height: 3px;
+            border-radius: var(--radius-bar);
+            background-image: linear-gradient(to right, var(--gradient-start), var(--gradient-mid), var(--gradient-end), var(--gradient-start));
+            background-size: 200% auto;
+            animation: gradient-scroll 6s linear infinite;
+            transition: background-image 0.4s ease;
+        }
+
+        @keyframes gradient-scroll {
+            100% {
+                background-position: 100% 0%;
+            }
+        }
 
         /* --- 主要内容区 (缓存卡片) --- */
-        .main-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1.5rem; width: 100%; max-width: 1800px; flex-grow: 1; margin-bottom: 2rem; justify-content: center; align-items: start; }
-        .card { background-color: var(--card-bg); border-radius: var(--radius-main); box-shadow: var(--card-shadow); padding: 1.5rem; display: none; flex-direction: column; box-sizing: border-box; transition: all 0.3s ease; border: 1px solid var(--border-color); }
-        .card.visible { display: flex; }
-        .card:hover { transform: translateY(-4px); box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12); }
-        h2 { font-size: 1.5rem; color: var(--text-color); margin: 0; font-weight: 600; display: flex; align-items: center; gap: 0.7rem; }
-        h2 .title-text { flex-grow: 1; text-align: left; }
-        h2 .status-dot { width: 0.6rem; height: 0.6rem; border-radius: 50%; transition: background-color 0.3s ease; flex-shrink: 0; }
-        h2 .status-dot.status-green { background-color: var(--status-green); } h2 .status-dot.status-yellow { background-color: var(--status-yellow); }
-        .card-title-gradient-bar { max-width: 100%; margin: 0.5rem 0 1.2rem 0; }
-        .charts { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-evenly; gap: 1.2rem; align-items: center; width: 100%; padding-top: 1.2rem; margin-top: 1rem; border-top: 1px solid var(--border-color); }
-        .chart-container { position: relative; width: 130px; height: 130px; }
-        
+        .main-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.2rem;
+            width: 100%;
+            justify-items: center;
+            align-items: start;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 370px;
+            min-width: 0;
+            box-sizing: border-box;
+            padding: 1rem;
+            background-color: var(--card-bg);
+            border-radius: var(--radius-main);
+            box-shadow: var(--card-shadow);
+            display: none;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
+        }
+
+        .card.visible {
+            display: flex;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+        }
+
+        h2 {
+            font-size: 1.2rem;
+            color: var(--text-color);
+            margin: 0;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+        }
+
+        h2 .title-text {
+            flex-grow: 1;
+            text-align: left;
+        }
+
+        h2 .status-dot {
+            width: 0.6rem;
+            height: 0.6rem;
+            border-radius: 50%;
+            transition: background-color 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        h2 .status-dot.status-green {
+            background-color: var(--status-green);
+        }
+
+        h2 .status-dot.status-yellow {
+            background-color: var(--status-yellow);
+        }
+
+        .card-title-gradient-bar {
+            max-width: 100%;
+            margin: 0.5rem 0 1.2rem 0;
+        }
+
+        .charts {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: space-evenly;
+            gap: 1.2rem;
+            align-items: center;
+            width: 100%;
+            padding-top: 1.2rem;
+            margin-top: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .chart-container {
+            position: relative;
+            width: 90px;
+            height: 90px;
+        }
+
         /* --- 加载与错误状态 --- */
-        #loading-spinner { display: none; width: 40px; height: 40px; border: 4px solid var(--border-color); border-top-color: var(--accent-color); border-radius: 50%; animation: spin 1s linear infinite; margin: 4rem auto; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .loading #loading-spinner { display: block; }
-        .loading #main-content, .loading .control-panel, .loading footer { opacity: 0.5; pointer-events: none; }
-        .error-message { color: var(--error-color); font-weight: bold; background-color: rgba(231, 76, 60, 0.1); border: 1px solid var(--error-color); padding: 2rem; border-radius: var(--radius-main); margin: 2rem auto; text-align:center; grid-column: 1 / -1; font-size: 1.2rem; width: fit-content; display: flex; flex-direction: column; align-items: center; gap: 1rem; }
-        
+        #loading-spinner {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border-color);
+            border-top-color: var(--accent-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 4rem auto;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading #loading-spinner {
+            display: block;
+        }
+
+        .loading #main-content,
+        .loading .control-panel,
+        .loading footer {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .error-message {
+            color: var(--error-color);
+            font-weight: bold;
+            background-color: rgba(231, 76, 60, 0.1);
+            border: 1px solid var(--error-color);
+            padding: 2rem;
+            border-radius: var(--radius-main);
+            margin: 2rem auto;
+            text-align: center;
+            grid-column: 1 / -1;
+            font-size: 1.2rem;
+            width: fit-content;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
         /* === 控制面板 === */
-        .control-panel { display: grid; grid-template-columns: 2fr 1.2fr; gap: 1.5rem; align-items: stretch; width: 100%; max-width: 1800px; padding: 0; }
-        .left-column, .right-column { display: flex; flex-direction: column; gap: 1.5rem; }
-        .control-section { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--radius-main); padding: 1.5rem; box-shadow: var(--card-shadow); display: flex; flex-direction: column; }
-        .right-column .control-section { flex-grow: 1; }
-        .section-title { font-size: 1.1rem; font-weight: 600; color: var(--text-color); margin: 0 0 1.2rem 0; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 0.7rem; flex-shrink: 0; }
-        .section-title .fas, .section-title .fa-solid, .section-title .fa-brands { color: var(--accent-color); font-size: 1.1em; opacity: 0.9; }
-        .control-section > *:not(.section-title) { margin: 0; }
-        .control-section > *:not(.section-title) + *:not(.section-title) { margin-top: 1.2rem; }
-        
+        .control-panel {
+            display: grid;
+            grid-template-columns: 2fr 1.2fr;
+            gap: 1.5rem;
+            align-items: stretch;
+            width: 100%;
+            max-width: 1800px;
+            padding: 0;
+        }
+
+        .left-column,
+        .right-column {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .control-section {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-main);
+            padding: 1.5rem;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .right-column .control-section {
+            flex-grow: 1;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-color);
+            margin: 0 0 1.2rem 0;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            flex-shrink: 0;
+        }
+
+        .section-title .fas,
+        .section-title .fa-solid,
+        .section-title .fa-brands {
+            color: var(--accent-color);
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .control-section>*:not(.section-title) {
+            margin: 0;
+        }
+
+        .control-section>*:not(.section-title)+*:not(.section-title) {
+            margin-top: 1.2rem;
+        }
+
         /* --- 左侧: 控制中心 --- */
-        .refresh-action-bar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
-        .auto-refresh-control { display: flex; align-items: center; gap: 0.8rem; }
-        .switch-label { cursor: pointer; display: flex; align-items: center; gap: 0.8rem; }
-        .switch-label-text { font-size: 0.95rem; font-weight: 500; color: var(--control-text); }
-        .switch-input { opacity: 0; width: 0; height: 0; }
-        .switch-slider { position: relative; width: 44px; height: 24px; background-color: var(--control-border); border-radius: 12px; transition: background-color 0.3s ease; }
-        .switch-slider::before { content: ''; position: absolute; top: 2px; left: 3px; width: 18px; height: 18px; background-color: #fff; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,0.2); transition: transform 0.3s ease; }
-        .switch-input:checked + .switch-slider { background-color: var(--status-green); }
-        .switch-input:checked + .switch-slider::before { transform: translateX(19px); }
-        #refresh-now-btn { background-color: var(--control-bg); color: var(--control-text); border: 1px solid var(--control-border); padding: 0.6rem 1.2rem; font-weight: 500; font-size: 0.95rem; border-radius: var(--radius-control); cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
-        #refresh-now-btn:hover { background-color: var(--control-hover-bg); border-color: var(--accent-color); }
-        .rule-actions-group { display: flex; flex-direction: column; gap: 0.8rem; }
-        .button-group-inline { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
-        .button-group-inline button, .rule-actions-group > button { padding: 0.8rem; font-size: 0.95rem; font-weight: 500; border-radius: var(--radius-control); cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
-        .button-group-inline button { background-color: var(--control-bg); color: var(--control-text); border: 1px solid var(--control-border); }
-        .button-group-inline button:hover { background-color: var(--control-hover-bg); border-color: var(--accent-color); }
-        button.danger { background-color: var(--danger-bg-color); border: 1px solid var(--danger-border-color); color: var(--danger-text-color); }
-        button.danger:hover { background-color: var(--danger-hover-bg-color); color: var(--danger-hover-text-color); border-color: var(--danger-hover-bg-color); }
-        
+        .refresh-action-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .auto-refresh-control {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .switch-label {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .switch-label-text {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--control-text);
+        }
+
+        .switch-input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .switch-slider {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background-color: var(--control-border);
+            border-radius: 12px;
+            transition: background-color 0.3s ease;
+        }
+
+        .switch-slider::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 3px;
+            width: 18px;
+            height: 18px;
+            background-color: #fff;
+            border-radius: 50%;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .switch-input:checked+.switch-slider {
+            background-color: var(--status-green);
+        }
+
+        .switch-input:checked+.switch-slider::before {
+            transform: translateX(19px);
+        }
+
+        #refresh-now-btn {
+            background-color: var(--control-bg);
+            color: var(--control-text);
+            border: 1px solid var(--control-border);
+            padding: 0.6rem 1.2rem;
+            font-weight: 500;
+            font-size: 0.95rem;
+            border-radius: var(--radius-control);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        #refresh-now-btn:hover {
+            background-color: var(--control-hover-bg);
+            border-color: var(--accent-color);
+        }
+
+        .rule-actions-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .button-group-inline {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.8rem;
+        }
+
+        .button-group-inline button,
+        .rule-actions-group>button {
+            padding: 0.8rem;
+            font-size: 0.95rem;
+            font-weight: 500;
+            border-radius: var(--radius-control);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .button-group-inline button {
+            background-color: var(--control-bg);
+            color: var(--control-text);
+            border: 1px solid var(--control-border);
+        }
+
+        .button-group-inline button:hover {
+            background-color: var(--control-hover-bg);
+            border-color: var(--accent-color);
+        }
+
+        button.danger {
+            background-color: var(--danger-bg-color);
+            border: 1px solid var(--danger-border-color);
+            color: var(--danger-text-color);
+        }
+
+        button.danger:hover {
+            background-color: var(--danger-hover-bg-color);
+            color: var(--danger-hover-text-color);
+            border-color: var(--danger-hover-bg-color);
+        }
+
         /* --- 数据查看 --- */
-        .data-view-group { display: flex; flex-wrap: wrap; gap: 0.6rem; }
-        .data-view-group button { background-color: var(--control-bg); color: var(--control-text); border: none; padding: 0.4rem 1rem; font-size: 0.9rem; border-radius: 20px; cursor: pointer; transition: all 0.2s ease; }
-        .data-view-group button:hover { background-color: var(--control-hover-bg); color: var(--accent-color); }
-        
+        .data-view-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+        }
+
+        .data-view-group button {
+            background-color: var(--control-bg);
+            color: var(--control-text);
+            border: none;
+            padding: 0.4rem 1rem;
+            font-size: 0.9rem;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .data-view-group button:hover {
+            background-color: var(--control-hover-bg);
+            color: var(--accent-color);
+        }
+
         /* --- 右侧面板: Tab 菜单 --- */
-        .info-panel-tabs { display: flex; border-bottom: 1px solid var(--border-color); margin-bottom: 1.2rem; flex-shrink: 0; }
-        .tab-button { background: none; border: none; padding: 0.8rem 1rem; cursor: pointer; color: var(--label-color); font-weight: 500; font-size: 1rem; position: relative; transition: color 0.2s ease; }
-        .tab-button::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 3px; background-color: var(--accent-color); opacity: 0; transform: scaleX(0.5); transition: all 0.3s ease; }
-        .tab-button.active { color: var(--accent-color); }
-        .tab-button.active::after { opacity: 1; transform: scaleX(1); }
-        .tab-content { display: none; flex-direction: column; gap: 1rem; }
-        .tab-content.active { display: flex; }
-        .tab-content#tab-system-info { flex-grow: 1; }
-        .subsection-title { font-size: 0.9rem; font-weight: 500; color: var(--label-color); margin: 0.2rem 0 -0.2rem 0; letter-spacing: 0.02em; }
+        .info-panel-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .tab-button {
+            background: none;
+            border: none;
+            padding: 0.8rem 1rem;
+            cursor: pointer;
+            color: var(--label-color);
+            font-weight: 500;
+            font-size: 1rem;
+            position: relative;
+            transition: color 0.2s ease;
+        }
+
+        .tab-button::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background-color: var(--accent-color);
+            opacity: 0;
+            transform: scaleX(0.5);
+            transition: all 0.3s ease;
+        }
+
+        .tab-button.active {
+            color: var(--accent-color);
+        }
+
+        .tab-button.active::after {
+            opacity: 1;
+            transform: scaleX(1);
+        }
+
+        .tab-content {
+            display: none;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .tab-content.active {
+            display: flex;
+        }
+
+        .tab-content#tab-system-info {
+            flex-grow: 1;
+        }
+
+        .subsection-title {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--label-color);
+            margin: 0.2rem 0 -0.2rem 0;
+            letter-spacing: 0.02em;
+        }
+
         /* [MODIFIED] 调整了系统信息指标的布局和间距，使其更清晰 */
-        .metrics-container { display: grid; grid-template-columns: auto 1fr; gap: 0.9rem 1.2rem; align-items: center; }
-        .metric-label { display: flex; align-items: center; gap: 0.7rem; font-weight: 500; color: var(--label-color); font-size: 0.95rem; }
-        .metric-label .fas { color: var(--accent-color); width: 1.2em; text-align: center; }
-        .metric-value { color: var(--value-color); font-weight: 600; text-align: right; font-size: 0.95rem; }
-        .metric-value.accent { color: var(--accent-color); font-weight: 700; }
-        #last_updated { font-size: 0.9rem; color: var(--label-color); margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border-color); width: 100%; display: flex; align-items: center; gap: 0.5rem; text-align: left; }
-        
+        .metrics-container {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 0.9rem 1.2rem;
+            align-items: center;
+        }
+
+        .metric-label {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            font-weight: 500;
+            color: var(--label-color);
+            font-size: 0.95rem;
+        }
+
+        .metric-label .fas {
+            color: var(--accent-color);
+            width: 1.2em;
+            text-align: center;
+        }
+
+        .metric-value {
+            color: var(--value-color);
+            font-weight: 600;
+            text-align: right;
+            font-size: 0.95rem;
+        }
+
+        .metric-value.accent {
+            color: var(--accent-color);
+            font-weight: 700;
+        }
+
+        #last_updated {
+            font-size: 0.9rem;
+            color: var(--label-color);
+            margin-top: auto;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-align: left;
+        }
+
         /* --- 外观设置 --- */
-        .theme-selector, .card-toggle-group { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
-        .control-base-label { background-color: var(--control-bg); border: 1px solid var(--control-border); padding: 0.6rem 0.9rem; color: var(--control-text); font-size: 0.95rem; font-weight: 500; cursor: pointer; border-radius: var(--radius-control); transition: all 0.2s ease; display: flex; align-items: center; justify-content: flex-start; gap: 0.8rem; }
-        .control-base-label:hover { border-color: var(--accent-color); }
-        .theme-selector .control-base-label { justify-content: center; }
-        .control-base-label.active { background-color: var(--control-active-bg); color: var(--control-active-text); border-color: var(--accent-color); box-shadow: 0 3px 8px -2px var(--accent-color); font-weight: 600; }
-        .card-toggle-group input[type="checkbox"] { appearance: none; width: 18px; height: 18px; border: 2px solid var(--control-border); border-radius: 4px; background-color: var(--card-bg); position: relative; cursor: pointer; transition: all 0.2s ease; flex-shrink: 0; margin: 0; }
-        .card-toggle-group input[type="checkbox"]:checked { background-color: var(--accent-color); border-color: var(--accent-color); }
-        .card-toggle-group input[type="checkbox"]:checked::after { content: '\2713'; display: block; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 14px; color: white; }
+        .theme-selector,
+        .card-toggle-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.8rem;
+        }
+
+        .control-base-label {
+            background-color: var(--control-bg);
+            border: 1px solid var(--control-border);
+            padding: 0.6rem 0.9rem;
+            color: var(--control-text);
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: var(--radius-control);
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 0.8rem;
+        }
+
+        .control-base-label:hover {
+            border-color: var(--accent-color);
+        }
+
+        .theme-selector .control-base-label {
+            justify-content: center;
+        }
+
+        .control-base-label.active {
+            background-color: var(--control-active-bg);
+            color: var(--control-active-text);
+            border-color: var(--accent-color);
+            box-shadow: 0 3px 8px -2px var(--accent-color);
+            font-weight: 600;
+        }
+
+        .card-toggle-group input[type="checkbox"] {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--control-border);
+            border-radius: 4px;
+            background-color: var(--card-bg);
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+            margin: 0;
+        }
+
+        .card-toggle-group input[type="checkbox"]:checked {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+
+        .card-toggle-group input[type="checkbox"]:checked::after {
+            content: '\2713';
+            display: block;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 14px;
+            color: white;
+        }
 
         /* --- [NEW] 页脚样式 - 方案一 (精致简约) --- */
         footer {
+            position: sticky;
+            bottom: 0;
+            z-index: 100;
+            background: var(--bg-color);
+            transition: background 0.3s, opacity 0.3s;
             width: 100%;
-            max-width: 1200px;
             text-align: center;
             margin-top: 2.5rem;
             padding-top: 1.5rem;
             border-top: 1px solid var(--border-color);
             font-size: 0.9rem;
             color: var(--label-color);
-            transition: all 0.4s ease;
+            /* [ADDED] Padding to keep content aligned */
+            padding-left: 2rem;
+            padding-right: 2rem;
+            box-sizing: border-box;
         }
+
         footer .footer-content {
             display: flex;
             justify-content: center;
             align-items: center;
             gap: 1.5rem;
-            flex-wrap: wrap; /* 在小屏幕上换行 */
+            flex-wrap: wrap;
+            /* 在小屏幕上换行 */
         }
+
         footer .footer-item {
             display: flex;
             align-items: center;
             gap: 0.6rem;
         }
+
         footer .footer-icon {
             color: var(--accent-color);
             opacity: 0.8;
             font-size: 1.1em;
         }
+
         footer .footer-separator {
             width: 1px;
             height: 16px;
             background-color: var(--border-color);
         }
+
         @media (max-width: 768px) {
             footer .footer-separator {
-                display: none; /* 在小屏幕上隐藏分隔线 */
+                display: none;
+                /* 在小屏幕上隐藏分隔线 */
             }
+
             footer .footer-content {
                 flex-direction: column;
                 gap: 0.8rem;
@@ -170,90 +714,505 @@
         }
 
         /* --- 响应式调整 --- */
-        @media (max-width: 1200px) { .control-panel { grid-template-columns: 1fr; } }
-        @media (max-width: 992px) { .main-container, .control-panel { grid-template-columns: 1fr; } body { padding: 1.5rem; } .card, .control-section { padding: 1.5rem; } }
-        @media (max-width: 768px) { html { font-size: 15px; } body { padding: 1rem; } .button-group-inline { grid-template-columns: 1fr; } .header h1 { font-size: 2rem; } .card, .control-section { padding: 1.2rem; } h2 { font-size: 1.4rem; } .chart-container { width: 110px; height: 110px; } }
+        @media (max-width: 1200px) {
+            .control-panel {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .topbar {
+                flex-direction: column;
+                gap: 0.8rem;
+                align-items: stretch;
+            }
+            .main-content {
+                padding: 0 0.5rem;
+                max-width: 100vw;
+            }
+            .main-container {
+                grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+                gap: 0.8rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            html {
+                font-size: 15px;
+            }
+
+            body {
+                /* [REMOVED] Padding moved to children */
+            }
+
+            .header, footer {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+
+            .topbar, .main-content {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+
+            .button-group-inline {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .card,
+            .control-section {
+                padding: 1.2rem;
+            }
+
+            .system-info-cards {
+                gap: 0.5rem;
+                max-width: 100vw;
+            }
+            .system-info-card {
+                min-width: 90px;
+                padding: 0.5rem 0.7rem;
+            }
+            .main-container {
+                display: grid !important;
+                grid-template-columns: 1fr !important; /* 1列 */
+                overflow-x: visible !important;
+                padding-bottom: 0 !important;
+            }
+            .card {
+                min-width: 0 !important;
+                max-width: none !important;
+                flex: none !important;
+            }
+            .list-cards-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            .list-cards-container > .card {
+                min-width: 0;
+                max-width: none;
+            }
+        }
+
+        /* === 新增顶部操作区样式 === */
+        .topbar {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto 1.5rem auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1.5rem;
+            background: var(--card-bg);
+            border-radius: var(--radius-main);
+            box-shadow: var(--card-shadow);
+            padding: 0.7rem 1.2rem;
+            border: 1px solid var(--border-color);
+        }
+        .topbar-group {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .theme-switcher {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.8rem;
+        }
+        /* 系统信息小卡片区 */
+        .system-info-cards {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto 1.2rem auto;
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 0.6rem;
+            justify-content: center;
+        }
+        .system-info-card {
+            background: var(--card-bg);
+            border-radius: var(--radius-main);
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 0.6rem; /* 增加上下内边距 */
+            min-width: 0; /* 防止内容溢出 */
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: center; /* 改为垂直居中 */
+            width: 100%; /* 确保所有卡片宽度一致 */
+            box-sizing: border-box; /* 确保padding不会影响总宽度 */
+            height: auto; /* 确保高度自适应内容 */
+            min-height: 3.6rem; /* 设置最小高度 */
+        }
+        .system-info-card > * {
+            margin: 0; /* 重置所有直接子元素的外边距 */
+        }
+        .system-info-label {
+            color: var(--label-color);
+            font-size: 0.8rem;
+            margin: 0 0 0.12rem 0; /* 微调标签和值之间的间距 */
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+            padding: 0; /* 确保没有内边距 */
+            line-height: 1; /* 减小行高 */
+        }
+        .system-info-value {
+            color: var(--value-color);
+            font-weight: 600;
+            font-size: 0.9rem;
+            width: 100%;
+            text-align: left;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding: 0; /* 确保没有内边距 */
+            margin: 0; /* 确保没有外边距 */
+            line-height: 1.1; /* 减小行高 */
+        }
+        .system-info-label i {
+            font-size: 0.85rem;
+            width: 1.1rem;
+            text-align: center;
+            flex-shrink: 0;
+            line-height: 1; /* 确保图标垂直对齐 */
+            display: inline-flex; /* 使用inline-flex确保图标对齐 */
+            align-items: center; /* 垂直居中对齐 */
+            justify-content: center; /* 水平居中对齐 */
+            height: 1em; /* 设置与文字相同的高度 */
+            margin: 0; /* 移除所有边距 */
+            position: relative; /* 添加相对定位 */
+            top: 0.05em; /* 微调图标位置 */
+        }
+
+        @media (max-width: 1200px) {
+            .system-info-cards {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .system-info-cards {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.5rem;
+            }
+            .system-info-card {
+                padding: 0.45rem 0.5rem; /* 调整小屏幕下的内边距 */
+                min-height: 3.4rem; /* 调整小屏幕下的最小高度 */
+            }
+        }
+
+        @media (max-width: 480px) {
+            .system-info-cards {
+                grid-template-columns: repeat(1, 1fr);
+                gap: 0.4rem;
+            }
+        }
+        /* 主内容区自适应 */
+        .main-content {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto 2rem auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        /* 缓存卡选择控件横向展开，居中 */
+        .card-toggle-group {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 0.8rem;
+            margin-bottom: 1.2rem;
+        }
+        .card-toggle-group .control-base-label {
+            min-width: 110px;
+            justify-content: center;
+        }
+        /* 缓存卡片区自适应优化 */
+        .main-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.2rem;
+            width: 100%;
+            justify-items: center;
+            align-items: start;
+        }
+        .card {
+            width: 100%;
+            max-width: 370px;
+            min-width: 0;
+            box-sizing: border-box;
+            padding: 1rem;
+        }
+        @media (max-width: 1200px) {
+            .system-info-cards {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        @media (max-width: 768px) {
+            .system-info-cards {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.5rem;
+            }
+            .system-info-card {
+                padding: 0.35rem 0.5rem;
+            }
+        }
+        @media (max-width: 480px) {
+            .system-info-cards {
+                grid-template-columns: repeat(1, 1fr);
+                gap: 0.4rem;
+            }
+        }
+        /* 半透明效果（通过JS动态添加.sticky-fade类） */
+        .sticky-fade {
+            opacity: 0.85 !important;
+            backdrop-filter: blur(2px);
+        }
+
+        /* [NEW] Fix for sticky header/footer width on mobile */
+        @media (max-width: 1199px) { /* Breakpoint starts when page is narrower than max-width */
+            .header, footer {
+                --body-padding: 2rem; /* Default body horizontal padding */
+                margin-left: calc(-1 * var(--body-padding));
+                margin-right: calc(-1 * var(--body-padding));
+                padding-left: var(--body-padding);
+                padding-right: var(--body-padding);
+                box-sizing: border-box;
+            }
+        }
+
+        /* === RESPONSIVE FIXES === */
+        /* 名单管理卡片容器 */
+        .list-cards-container {
+            display: flex;
+            gap: 1.2rem;
+            justify-content: center;
+            max-width: 1200px; /* 增加最大宽度以容纳三个卡片 */
+            margin: 0 auto;
+            width: 100%;
+        }
+        .list-cards-container > .card {
+            flex: 1; /* 三张卡片平分宽度 */
+            max-width: none; /* 取消默认的卡片最大宽度限制 */
+        }
+        /* 缓存卡片响应式布局 */
+        @media (max-width: 1200px) {
+            .main-container {
+                grid-template-columns: repeat(2, 1fr) !important; /* 2列 */
+            }
+        }
+        @media (max-width: 768px) {
+            .main-container {
+                display: grid !important;
+                grid-template-columns: 1fr !important; /* 1列 */
+                overflow-x: visible !important;
+                padding-bottom: 0 !important;
+            }
+            .main-container > .card {
+                min-width: 0 !important;
+                max-width: none !important;
+                flex: none !important;
+            }
+            .list-cards-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            .list-cards-container > .card {
+                min-width: 0;
+                max-width: none;
+            }
+            .header, footer {
+                --body-padding: 1rem; /* Adjust for smaller padding on mobile */
+            }
+        }
+
+        @media (max-width: 1199px) {
+            .header, footer {
+                margin-left: -2rem;
+                margin-right: -2rem;
+                padding-left: 2rem;
+                padding-right: 2rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header, footer {
+                margin-left: -1rem;
+                margin-right: -1rem;
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+        }
+        /* View switching logic */
+        body:not(.list-view-active) #list-manage-panel {
+            display: none;
+        }
+        body.list-view-active #main-content,
+        body.list-view-active .card-toggle-group {
+            display: none !important;
+        }
+        /* [NEW] 规则说明框样式 */
+        .rule-explainer {
+            max-width: 900px;
+            margin: 0 auto 1.5rem auto;
+            padding: 1.2rem 1.5rem;
+            background-color: var(--control-bg);
+            border-radius: var(--radius-main);
+            font-size: 0.98rem;
+            color: var(--text-color);
+            line-height: 1.8;
+            transition: background-color 0.4s ease, color 0.4s ease;
+        }
+        .rule-explainer b {
+            color: var(--value-color);
+            font-weight: 600;
+        }
+        .rule-explainer a {
+            color: var(--accent-color);
+            text-decoration: none;
+            font-weight: 500;
+            border-bottom: 1px solid var(--accent-color);
+            transition: all 0.2s ease;
+        }
+        .rule-explainer a:hover {
+            background-color: var(--accent-color);
+            color: var(--card-bg);
+            border-bottom-color: transparent;
+        }
+        .rule-explainer code {
+            background-color: var(--control-border);
+            color: var(--text-color);
+            padding: 0.2em 0.4em;
+            margin: 0 0.1em;
+            font-size: 85%;
+            border-radius: 4px;
+        }
+
+        /* [NEW] Style for list management textareas */
+        .list-editor {
+            width: 100%;
+            height: 120px;
+            resize: vertical;
+            font-size: 1rem;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--control-border);
+            box-sizing: border-box; /* Prevents padding from breaking layout */
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            transition: all 0.2s ease;
+        }
+
+        .list-editor:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-color) 25%, transparent);
+        }
     </style>
 </head>
+
 <body>
     <div class="header">
-        <h1>MosDNS 监控面板</h1>
-        <div class="header-gradient-bar"></div>
+        <div style="max-width: 1200px; margin: 0 auto; width: 100%; padding: 0 2rem; box-sizing: border-box;">
+            <h1>MosDNS 面板</h1>
+            <div class="header-gradient-bar"></div>
+        </div>
+    </div>
+
+    <!-- 新增顶部操作区 -->
+    <div class="topbar" style="padding-left: 2rem; padding-right: 2rem; box-sizing: border-box;">
+        <div class="topbar-group">
+            <label class="switch-label">
+                <input type="checkbox" id="auto-refresh-toggle" class="switch-input">
+                <span class="switch-slider"></span>
+            </label>
+            <span class="switch-label-text">自动刷新 (5s)</span>
+            <button id="refresh-now-btn"><i class="fas fa-sync-alt"></i> 立即刷新</button>
+            <button id="restart-mosdns-btn" class="danger"><i class="fas fa-redo"></i> 重启 MosDNS 服务</button>
+        </div>
+        <div class="theme-switcher" id="theme-selector"></div>
     </div>
 
     <div id="loading-spinner"></div>
 
-    <div id="main-content" class="main-container"></div>
-
-    <div class="control-panel">
-        <div class="left-column">
-            <section class="control-section">
-                <h4 class="section-title"><i class="fas fa-cogs"></i> 控制中心</h4>
-                <div class="refresh-action-bar">
-                    <div class="auto-refresh-control">
-                        <label class="switch-label">
-                            <input type="checkbox" id="auto-refresh-toggle" class="switch-input">
-                            <span class="switch-slider"></span>
-                        </label>
-                        <span class="switch-label-text">自动刷新 (5s)</span>
-                    </div>
-                    <button id="refresh-now-btn"><i class="fas fa-sync-alt"></i> 立即刷新</button>
-                </div>
-                <div class="rule-actions-group">
-                    <div class="button-group-inline">
-                        <button id="save-rules-btn"><i class="fas fa-save"></i> 保存分流规则</button>
-                        <button id="flush-rules-btn" class="danger"><i class="fas fa-trash-alt"></i> 清空分流规则</button>
-                    </div>
-                    <button id="restart-mosdns-btn" class="danger"><i class="fas fa-redo"></i> 重启 MosDNS 服务</button>
-                </div>
-            </section>
-
-            <section class="control-section">
-                <h4 class="section-title"><i class="fas fa-eye"></i> 数据查看</h4>
-                <div class="data-view-group">
-                    <button id="show-rules-btn1">fakeip 域名</button>
-                    <button id="show-rules-btn2">realip 域名</button>
-                    <button id="show-rules-btn3">无 V4 域名</button>
-                    <button id="show-rules-btn4">无 V6 域名</button>
-                    <button id="show-cache-btn1">总缓存</button>
-                    <button id="show-cache-btn2">CN 缓存</button>
-                    <button id="show-cache-btn3">!CN 缓存</button>
-                    <button id="show-cache-btn4">节点缓存</button>
-                </div>
-            </section>
+    <div class="main-content" style="padding-left: 2rem; padding-right: 2rem; box-sizing: border-box;">
+        <!-- 系统信息小卡片区 -->
+        <div class="system-info-cards" id="system-info-cards"></div>
+        <!-- 卡片切换控件和黑白名单管理按钮同组 -->
+        <div class="card-toggle-group" id="card-toggles">
+            <!-- 这里原本是JS动态生成的筛选按钮，直接在JS里追加黑白名单管理按钮 -->
         </div>
-
-        <div class="right-column">
-            <section class="control-section">
-                <div class="info-panel-tabs">
-                    <button class="tab-button active" data-tab="system-info"><i class="fas fa-server"></i> 系统信息</button>
-                    <button class="tab-button" data-tab="appearance"><i class="fas fa-palette"></i> 外观设置</button>
+        <!-- 缓存卡片区 -->
+        <div id="main-content" class="main-container"></div>
+        <!-- 名单管理区 -->
+        <div class="main-content" id="list-manage-panel" style="margin-bottom:1.5rem;">
+            <!-- 规则说明（只显示一份） -->
+            <div style="max-width:900px;margin:0 auto 1.5rem auto;padding:1.2rem 1.5rem;background:transparent;border:none;font-size:0.98rem;color:var(--text-color);line-height:1.8;">
+                <b>域名匹配规则说明：</b><br>
+                支持多种域名匹配方式（可混用，每行一条）：
+                <ul style="margin:0.5em 0 0 1.2em;padding:0;">
+                    <li><b>以 <code>domain:</code> 开头</b>，域匹配。例如：<code>domain:google.com</code> 匹配 google.com 及其所有子域名。</li>
+                    <li><b>以 <code>full:</code> 开头</b>，完整匹配。例如：<code>full:google.com</code> 只匹配 google.com 本身。</li>
+                    <li><b>以 <code>keyword:</code> 开头</b>，关键字匹配。例如：<code>keyword:google.com</code> 匹配所有包含 google.com 的域名。</li>
+                    <li><b>以 <code>regexp:</code> 开头</b>，正则匹配（Golang 标准）。例如：<code>regexp:.+\.google\.com$</code> 匹配所有以 .google.com 结尾的域名。</li>
+                </ul>
+                匹配方式可省略，具体优先级和更多说明请参考
+                <a href="https://irine-sistiana.gitbook.io/mosdns-wiki/mosdns-v5/ru-he-pei-zhi-mosdns/yu-ming-pi-pei-gui-ze" target="_blank" style="color:var(--accent-color);text-decoration:underline;">MosDNS 域名匹配规则官方文档</a>。
+                <br><b>匹配方式优先级：</b> <code>full</code> &gt; <code>domain</code> &gt; <code>regexp</code> &gt; <code>keyword</code>
+            </div>
+            <div class="list-cards-container">
+                <div class="card visible">
+                    <h2><i class="fas fa-ban"></i><span class="title-text">黑名单</span></h2>
+                    <div class="card-title-gradient-bar"></div>
+                    <div style="color:#e74c3c;font-size:0.95rem;margin-bottom:0.5rem;">禁止解析的域名/关键字</div>
+                    <textarea id="blocklist-editor" class="list-editor"></textarea>
                 </div>
-                <div id="tab-system-info" class="tab-content active">
-                    <div class="metrics-container" id="metrics-system"></div>
-                    <p id="last_updated"><i class="fas fa-clock"></i> </p>
+                <div class="card visible">
+                    <h2><i class="fas fa-check"></i><span class="title-text">白名单</span></h2>
+                    <div class="card-title-gradient-bar"></div>
+                    <div style="color:#4a90e2;font-size:0.95rem;margin-bottom:0.5rem;">本地解析（如自有域名直连）</div>
+                    <textarea id="whitelist-editor" class="list-editor"></textarea>
                 </div>
-                <div id="tab-appearance" class="tab-content">
-                    <h5 class="subsection-title">主题切换</h5>
-                    <div class="theme-selector" id="theme-selector"></div>
-                    <h5 class="subsection-title">显示缓存卡片</h5>
-                    <div class="card-toggle-group" id="card-toggles"></div>
+                <div class="card visible">
+                    <h2><i class="fas fa-user-slash"></i><span class="title-text">客户端黑名单</span></h2>
+                    <div class="card-title-gradient-bar"></div>
+                    <div style="color:#e74c3c;font-size:0.95rem;margin-bottom:0.5rem;">请填写拒绝解析请求的客户端IP，一行一个</div>
+                    <textarea id="blockips-editor" class="list-editor"></textarea>
                 </div>
-            </section>
+            </div>
+            <div style="width:100%;display:flex;justify-content:center;gap:1.2rem;margin-top:1.5rem;">
+                <button id="back-to-cards-btn" class="control-base-label" style="font-size:1.08rem;padding:0.8rem 2.2rem;">返回缓存展示</button>
+                <button id="save-lists-btn" class="control-base-label" style="background:#2962ff;color:#fff;font-size:1.08rem;padding:0.8rem 2.2rem;">保存并重载</button>
+            </div>
         </div>
     </div>
-    
-    <!-- [NEW] 采用方案一：精致简约风页脚 -->
+
+    <!-- 外观设置和卡片显示切换入口可合并到顶部或页脚，原Tab移除 -->
+
     <footer>
-        <div class="footer-content">
+        <div class="footer-content" style="max-width: 1200px; margin: 0 auto; padding: 0 2rem; box-sizing: border-box;">
             <div class="footer-item">
                 <i class="fas fa-code-branch footer-icon"></i>
-                <span>UI 版本: V1.1 (20250614)</span>
+                <span>UI 版本: V1.3 (20250807)</span>
             </div>
             <div class="footer-separator"></div>
             <div class="footer-item">
                 <i class="fas fa-users-cog footer-icon"></i>
-                <span>技术支持: Phil Horse & JimmyDADA</span>
+                <span>
+                    基于 <a href="https://github.com/Jimmyzxk/MosDNSUI" target="_blank" style="color: var(--accent-color); text-decoration: underline;">MosdnsUI</a>.
+                    由 <a href="weixin://" style="color: BlueViolet;"><i><u>藍色の海</u></i></a> 修改.
+                </span>
             </div>
         </div>
     </footer>
@@ -278,51 +1237,86 @@
         Chart.defaults.plugins.datalabels.formatter = (value, context) => { const sum = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0); if (sum === 0) return ''; const percentage = (value / sum * 100); return percentage > 5 ? `${percentage.toFixed(0)}%` : ''; };
 
         function createElement(tag, className, innerText = '', id = '') { const el = document.createElement(tag); if (className) el.className = className; if (innerText) el.innerText = innerText; if (id) el.id = id; return el; }
-        
+
         function formatNumber(num) { if (typeof num !== 'number' && isNaN(num = parseFloat(num))) { return num; } return num.toLocaleString('en-US'); }
-        
+
         const iconMap = { '请求总数': 'fa-globe', '缓存命中': 'fa-check-circle', '过期缓存命中': 'fa-history', '缓存命中率': 'fa-bullseye', '过期缓存命中率': 'fa-bullseye', '缓存条目数': 'fa-database', '启动时间': 'fa-power-off', 'CPU 时间': 'fa-microchip', '常驻内存 (RSS)': 'fa-memory', '待用堆内存 (Idle)': 'fa-box-open', 'Go 版本': 'fa-code-branch', '线程数': 'fa-sitemap', '打开文件描述符': 'fa-folder-open', };
-        const cacheOrder = ['cache_all', 'cache_cn', 'cache_google', 'cache_node'];
-        const cacheTitles = { 'cache_all': '全部缓存', 'cache_cn': '国内缓存', 'cache_google': '国外缓存', 'cache_node': '节点缓存' };
-        
+        const cacheOrder = ['lazy_cache', 'cndomain_cache', 'apple_domain_cache', 'nocn_cache'];
+        const cacheTitles = { 'lazy_cache': '全部缓存', 'cndomain_cache': '国内缓存', 'apple_domain_cache': '苹果域名', 'nocn_cache': '国外缓存' };
+
         const themeMap = {
-            'light': { name: '默认亮色', icon: 'fa-sun', cssVars: { '--bg-color': '#f7f9fd', '--text-color': '#2c3e50', '--card-bg': '#ffffff', '--card-shadow': '0 6px 18px rgba(0, 0, 0, 0.08)', '--border-color': '#e0e6ec', '--accent-color': '#4a90e2', '--error-color': '#e74c3c', '--label-color': '#7f8c8d', '--value-color': '#34495e', '--control-bg': '#f0f4f7', '--control-border': '#d5dce2', '--control-text': '#5e727e', '--control-hover-bg': '#e5edf3', '--control-active-bg': '#4a90e2', '--control-active-text': '#ffffff', '--gradient-start': '#4a90e2', '--gradient-mid': '#2e86de', '--gradient-end': '#4a90e2', '--danger-bg-color': 'rgba(231, 76, 60, 0.1)', '--danger-border-color': 'rgba(231, 76, 60, 0.3)', '--danger-text-color': '#e74c3c', '--danger-hover-bg-color': '#e74c3c', '--danger-hover-text-color': '#ffffff' }, chartColors: { hit: 'rgba(74, 144, 226, 0.7)', miss: 'rgba(189, 195, 199, 0.3)', hitBorder: '#4a90e2', missBorder: '#bdc3c7', text: '#2c3e50' }},
-            'dark': { name: '默认暗色', icon: 'fa-moon', cssVars: { '--bg-color': '#1a1a1a', '--text-color': '#e0e0e0', '--card-bg': '#282828', '--card-shadow': '0 8px 25px rgba(0, 0, 0, 0.5)', '--border-color': '#3a3a3a', '--accent-color': '#5096ff', '--error-color': '#e74c3c', '--label-color': '#bbbbbb', '--value-color': '#ffffff', '--control-bg': '#353535', '--control-border': '#4a4a4a', '--control-text': '#e0e0e0', '--control-hover-bg': '#404040', '--control-active-bg': '#5096ff', '--control-active-text': '#ffffff', '--gradient-start': '#5096ff', '--gradient-mid': '#3a7ce0', '--gradient-end': '#5096ff', '--danger-bg-color': 'rgba(231, 76, 60, 0.2)', '--danger-border-color': 'rgba(231, 76, 60, 0.5)', '--danger-text-color': '#e74c3c', '--danger-hover-bg-color': '#e74c3c', '--danger-hover-text-color': '#ffffff' }, chartColors: { hit: 'rgba(80, 150, 255, 0.7)', miss: 'rgba(100, 100, 100, 0.3)', hitBorder: '#5096ff', missBorder: '#707070', text: '#e0e0e0' }},
-            'cyberpunk': { name: '赛博朋克', icon: 'fa-robot', cssVars: { '--bg-color': '#0c0221', '--text-color': '#e0e1dd', '--card-bg': '#1a0f3d', '--card-shadow': '0 10px 30px rgba(42,7,102,.6)', '--border-color': '#3b2a60', '--accent-color': '#00f6ff', '--error-color': '#ff005c', '--label-color': '#a9a2c1', '--value-color': '#f0f0f0', '--control-bg': '#1e114d', '--control-border': '#4a3a79', '--control-text': '#a0a0e0', '--control-hover-bg': '#2e1e5d', '--control-active-bg': '#00f6ff', '--control-active-text': '#0c0221', '--gradient-start': '#00f6ff', '--gradient-mid': '#ff005c', '--gradient-end': '#00f6ff', '--danger-bg-color': 'rgba(255, 0, 92, 0.2)', '--danger-border-color': 'rgba(255, 0, 92, 0.5)', '--danger-text-color': '#ff005c', '--danger-hover-bg-color': '#ff005c', '--danger-hover-text-color': '#0c0221' }, chartColors: { hit: 'rgba(0,246,255,.7)', miss: 'rgba(255,0,92,.3)', hitBorder: '#00f6ff', missBorder: '#ff005c', text: '#e0e1dd' }},
-            'forest': { name: '静谧森林', icon: 'fa-tree', cssVars: { '--bg-color': '#e8f5e9', '--text-color': '#2e3d32', '--card-bg': '#fff', '--card-shadow': '0 6px 18px rgba(0,0,0,.06)', '--border-color': '#d0e0d0', '--accent-color': '#4a7c59', '--error-color': '#c0392b', '--label-color': '#607b6c', '--value-color': '#2e3d32', '--control-bg': '#e1f0e2', '--control-border': '#c8d8c8', '--control-text': '#506f5c', '--control-hover-bg': '#d6e8d7', '--control-active-bg': '#4a7c59', '--control-active-text': '#fff', '--gradient-start': '#4a7c59', '--gradient-mid': '#3a6246', '--gradient-end': '#4a7c59', '--danger-bg-color': 'rgba(192, 57, 43, 0.1)', '--danger-border-color': 'rgba(192, 57, 43, 0.3)', '--danger-text-color': '#c0392b', '--danger-hover-bg-color': '#c0392b', '--danger-hover-text-color': '#ffffff' }, chartColors: { hit: 'rgba(74,124,89,.7)', miss: 'rgba(160,180,165,.3)', hitBorder: '#4a7c59', missBorder: '#a0a0a0', text: '#2e3d32' }},
-            'sunset': { name: '日落余晖', icon: 'fa-cloud-sun-rain', cssVars: { '--bg-color': '#2c203a', '--text-color': '#fde8d7', '--card-bg': '#3a2a4e', '--card-shadow': '0 10px 30px rgba(44,32,58,.6)', '--border-color': '#553e70', '--accent-color': '#ff8c42', '--error-color': '#e74c3c', '--label-color': '#d3b7e8', '--value-color': '#fde8d7', '--control-bg': '#4a3360', '--control-border': '#5c4278', '--control-text': '#e0c8f5', '--control-hover-bg': '#5a4370', '--control-active-bg': '#ff8c42', '--control-active-text': '#2c203a', '--gradient-start': '#ff8c42', '--gradient-mid': '#ff4d6d', '--gradient-end': '#ff8c42', '--danger-bg-color': 'rgba(255, 77, 109, 0.2)', '--danger-border-color': 'rgba(255, 77, 109, 0.4)', '--danger-text-color': '#ff4d6d', '--danger-hover-bg-color': '#ff4d6d', '--danger-hover-text-color': '#ffffff' }, chartColors: { hit: 'rgba(255,140,66,.7)', miss: 'rgba(255,77,109,.3)', hitBorder: '#ff8c42', missBorder: '#ff4d6d', text: '#fde8d7' }},
-            'monochrome': { name: '高级灰', icon: 'fa-grip-lines', cssVars: { '--bg-color': '#eef1f4', '--text-color': '#2b2e31', '--card-bg': '#fff', '--card-shadow': '0 6px 18px rgba(0,0,0,.07)', '--border-color': '#d8dee3', '--accent-color': '#4a4a4a', '--error-color': '#b00020', '--label-color': '#7f8c8d', '--value-color': '#1a1a1a', '--control-bg': '#e1e4e7', '--control-border': '#c9ccd0', '--control-text': '#5e6872', '--control-hover-bg': '#d6dbdf', '--control-active-bg': '#4a4a4a', '--control-active-text': '#fff', '--gradient-start': '#666', '--gradient-mid': '#333', '--gradient-end': '#666', '--danger-bg-color': 'rgba(176, 0, 32, 0.1)', '--danger-border-color': 'rgba(176, 0, 32, 0.3)', '--danger-text-color': '#b00020', '--danger-hover-bg-color': '#b00020', '--danger-hover-text-color': '#ffffff' }, chartColors: { hit: 'rgba(74,74,74,.7)', miss: 'rgba(160,160,160,.3)', hitBorder: '#4a4a4a', missBorder: '#a0a0a0', text: '#2b2e31' }},
-            'google': { name: 'Google 风格', icon: 'fa-brands fa-google', cssVars: { '--bg-color': '#f8f9fa', '--text-color': '#212529', '--card-bg': '#ffffff', '--card-shadow': '0 1px 4px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.05)', '--border-color': '#e8e8e8', '--accent-color': '#34A853', '--error-color': '#EA4335', '--label-color': '#707070', '--value-color': '#3C4043', '--control-bg': '#e6f4ea', '--control-border': '#b1e0b9', '--control-text': '#34A853', '--control-hover-bg': '#d9f3de', '--control-active-bg': '#34A853', '--control-active-text': '#ffffff', '--gradient-start': '#4285F4', '--gradient-mid': '#FBBC05', '--gradient-end': '#EA4335', '--danger-bg-color': 'rgba(234, 67, 53, 0.1)', '--danger-border-color': 'rgba(234, 67, 53, 0.3)', '--danger-text-color': '#EA4335', '--danger-hover-bg-color': '#EA4335', '--danger-hover-text-color': '#ffffff' }, chartColors: { hit: 'rgba(52, 168, 83, 0.7)', miss: 'rgba(234, 67, 53, 0.3)', hitBorder: '#4285F4', missBorder: '#FBBC05', text: '#3C4043' }},
-            'mac': { name: 'Mac 风格', icon: 'fa-brands fa-apple', cssVars: { '--bg-color': '#F0F0F5', '--text-color': '#1c1c1e', '--card-bg': '#ffffff', '--card-shadow': '0 0.5px 2px rgba(0, 0, 0, 0.05), 0 1px 4px rgba(0, 0, 0, 0.04)', '--border-color': '#E5E5EA', '--accent-color': '#007AFF', '--error-color': '#FF3B30', '--label-color': '#666666', '--value-color': '#1c1c1e', '--control-bg': '#EFEFF4', '--control-border': '#D1D1D6', '--control-text': '#1c1c1e', '--control-hover-bg': '#DCDCE0', '--control-active-bg': '#007AFF', '--control-active-text': '#ffffff', '--gradient-start': '#007AFF', '--gradient-mid': '#34A8FF', '--gradient-end': '#007AFF', '--danger-bg-color': 'rgba(255, 59, 48, 0.1)', '--danger-border-color': 'rgba(255, 59, 48, 0.3)', '--danger-text-color': '#FF3B30', '--danger-hover-bg-color': '#FF3B30', '--danger-hover-text-color': '#ffffff' }, chartColors: { hit: 'rgba(0, 122, 255, 0.7)', miss: 'rgba(180, 180, 185, 0.2)', hitBorder: '#007aff', missBorder: '#d1d1d6', text: '#1c1c1e' }}
+            'light': { name: '默认亮色', icon: 'fa-sun', cssVars: { '--bg-color': '#f7f9fd', '--text-color': '#2c3e50', '--card-bg': '#ffffff', '--card-shadow': '0 6px 18px rgba(0, 0, 0, 0.08)', '--border-color': '#e0e6ec', '--accent-color': '#4a90e2', '--error-color': '#e74c3c', '--label-color': '#7f8c8d', '--value-color': '#34495e', '--control-bg': '#f0f4f7', '--control-border': '#d5dce2', '--control-text': '#5e727e', '--control-hover-bg': '#e5edf3', '--control-active-bg': '#4a90e2', '--control-active-text': '#ffffff', '--gradient-start': '#4a90e2', '--gradient-mid': '#2e86de', '--gradient-end': '#4a90e2', '--danger-bg-color': 'rgba(231, 76, 60, 0.1)', '--danger-border-color': 'rgba(231, 76, 60, 0.3)', '--danger-text-color': '#e74c3c', '--danger-hover-bg-color': '#e74c3c', '--danger-hover-text-color': '#ffffff' }, chartColors: { hit: 'rgba(74, 144, 226, 0.7)', miss: 'rgba(189, 195, 199, 0.3)', hitBorder: '#4a90e2', missBorder: '#bdc3c7', text: '#2c3e50' } },
+            'dark': { name: '默认暗色', icon: 'fa-moon', cssVars: { '--bg-color': '#1a1a1a', '--text-color': '#e0e0e0', '--card-bg': '#282828', '--card-shadow': '0 8px 25px rgba(0, 0, 0, 0.5)', '--border-color': '#3a3a3a', '--accent-color': '#5096ff', '--error-color': '#e74c3c', '--label-color': '#bbbbbb', '--value-color': '#ffffff', '--control-bg': '#353535', '--control-border': '#4a4a4a', '--control-text': '#e0e0e0', '--control-hover-bg': '#404040', '--control-active-bg': '#5096ff', '--control-active-text': '#ffffff', '--gradient-start': '#5096ff', '--gradient-mid': '#3a7ce0', '--gradient-end': '#5096ff', '--danger-bg-color': 'rgba(231, 76, 60, 0.2)', '--danger-border-color': 'rgba(231, 76, 60, 0.5)', '--danger-text-color': '#e74c3c', '--danger-hover-bg-color': '#e74c3c', '--danger-hover-text-color': '#ffffff' }, chartColors: { hit: 'rgba(80, 150, 255, 0.7)', miss: 'rgba(100, 100, 100, 0.3)', hitBorder: '#5096ff', missBorder: '#707070', text: '#e0e0e0' } },
+            'cyberpunk': { name: '赛博朋克', icon: 'fa-robot', cssVars: { '--bg-color': '#0c0221', '--text-color': '#e0e1dd', '--card-bg': '#1a0f3d', '--card-shadow': '0 10px 30px rgba(42,7,102,.6)', '--border-color': '#3b2a60', '--accent-color': '#00f6ff', '--error-color': '#ff005c', '--label-color': '#a9a2c1', '--value-color': '#f0f0f0', '--control-bg': '#1e114d', '--control-border': '#4a3a79', '--control-text': '#a0a0e0', '--control-hover-bg': '#2e1e5d', '--control-active-bg': '#00f6ff', '--control-active-text': '#0c0221', '--gradient-start': '#00f6ff', '--gradient-mid': '#ff005c', '--gradient-end': '#00f6ff', '--danger-bg-color': 'rgba(255, 0, 92, 0.2)', '--danger-border-color': 'rgba(255, 0, 92, 0.5)', '--danger-text-color': '#ff005c', '--danger-hover-bg-color': '#ff005c', '--danger-hover-text-color': '#0c0221' }, chartColors: { hit: 'rgba(0,246,255,.7)', miss: 'rgba(255,0,92,.3)', hitBorder: '#00f6ff', missBorder: '#ff005c', text: '#e0e1dd' } },
+            'forest': { name: '静谧森林', icon: 'fa-tree', cssVars: { '--bg-color': '#e8f5e9', '--text-color': '#2e3d32', '--card-bg': '#fff', '--card-shadow': '0 6px 18px rgba(0,0,0,.06)', '--border-color': '#d0e0d0', '--accent-color': '#4a7c59', '--error-color': '#c0392b', '--label-color': '#607b6c', '--value-color': '#2e3d32', '--control-bg': '#e1f0e2', '--control-border': '#c8d8c8', '--control-text': '#506f5c', '--control-hover-bg': '#d6e8d7', '--control-active-bg': '#4a7c59', '--control-active-text': '#fff', '--gradient-start': '#4a7c59', '--gradient-mid': '#3a6246', '--gradient-end': '#4a7c59', '--danger-bg-color': 'rgba(192, 57, 43, 0.1)', '--danger-border-color': 'rgba(192, 57, 43, 0.3)', '--danger-text-color': '#c0392b', '--danger-hover-bg-color': '#c0392b', '--danger-hover-text-color': '#ffffff' }, chartColors: { hit: 'rgba(74,124,89,.7)', miss: 'rgba(160,180,165,.3)', hitBorder: '#4a7c59', missBorder: '#a0a0a0', text: '#2e3d32' } },
+            'sunset': { name: '日落余晖', icon: 'fa-cloud-sun-rain', cssVars: { '--bg-color': '#2c203a', '--text-color': '#fde8d7', '--card-bg': '#3a2a4e', '--card-shadow': '0 10px 30px rgba(44,32,58,.6)', '--border-color': '#553e70', '--accent-color': '#ff8c42', '--error-color': '#e74c3c', '--label-color': '#d3b7e8', '--value-color': '#fde8d7', '--control-bg': '#4a3360', '--control-border': '#5c4278', '--control-text': '#e0c8f5', '--control-hover-bg': '#5a4370', '--control-active-bg': '#ff8c42', '--control-active-text': '#2c203a', '--gradient-start': '#ff8c42', '--gradient-mid': '#ff4d6d', '--gradient-end': '#ff8c42', '--danger-bg-color': 'rgba(255, 77, 109, 0.2)', '--danger-border-color': 'rgba(255, 77, 109, 0.4)', '--danger-text-color': '#ff4d6d', '--danger-hover-bg-color': '#ff4d6d', '--danger-hover-text-color': '#ffffff' }, chartColors: { hit: 'rgba(255,140,66,.7)', miss: 'rgba(255,77,109,.3)', hitBorder: '#ff8c42', missBorder: '#ff4d6d', text: '#fde8d7' } },
+            'monochrome': { name: '高级灰', icon: 'fa-grip-lines', cssVars: { '--bg-color': '#eef1f4', '--text-color': '#2b2e31', '--card-bg': '#fff', '--card-shadow': '0 6px 18px rgba(0,0,0,.07)', '--border-color': '#d8dee3', '--accent-color': '#4a4a4a', '--error-color': '#b00020', '--label-color': '#7f8c8d', '--value-color': '#1a1a1a', '--control-bg': '#e1e4e7', '--control-border': '#c9ccd0', '--control-text': '#5e6872', '--control-hover-bg': '#d6dbdf', '--control-active-bg': '#4a4a4a', '--control-active-text': '#fff', '--gradient-start': '#666', '--gradient-mid': '#333', '--gradient-end': '#666', '--danger-bg-color': 'rgba(176, 0, 32, 0.1)', '--danger-border-color': 'rgba(176, 0, 32, 0.3)', '--danger-text-color': '#b00020', '--danger-hover-bg-color': '#b00020', '--danger-hover-text-color': '#ffffff' }, chartColors: { hit: 'rgba(74,74,74,.7)', miss: 'rgba(160,160,160,.3)', hitBorder: '#4a4a4a', missBorder: '#a0a0a0', text: '#2b2e31' } },
+            'google': { name: 'Google 风格', icon: 'fa-brands fa-google', cssVars: { '--bg-color': '#f8f9fa', '--text-color': '#212529', '--card-bg': '#ffffff', '--card-shadow': '0 1px 4px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.05)', '--border-color': '#e8e8e8', '--accent-color': '#34A853', '--error-color': '#EA4335', '--label-color': '#707070', '--value-color': '#3C4043', '--control-bg': '#e6f4ea', '--control-border': '#b1e0b9', '--control-text': '#34A853', '--control-hover-bg': '#d9f3de', '--control-active-bg': '#34A853', '--control-active-text': '#ffffff', '--gradient-start': '#4285F4', '--gradient-mid': '#FBBC05', '--gradient-end': '#EA4335', '--danger-bg-color': 'rgba(234, 67, 53, 0.1)', '--danger-border-color': 'rgba(234, 67, 53, 0.3)', '--danger-text-color': '#EA4335', '--danger-hover-bg-color': '#EA4335', '--danger-hover-text-color': '#ffffff' }, chartColors: { hit: 'rgba(52, 168, 83, 0.7)', miss: 'rgba(234, 67, 53, 0.3)', hitBorder: '#4285F4', missBorder: '#FBBC05', text: '#3C4043' } },
+            'mac': { name: 'Mac 风格', icon: 'fa-brands fa-apple', cssVars: { '--bg-color': '#F0F0F5', '--text-color': '#1c1c1e', '--card-bg': '#ffffff', '--card-shadow': '0 0.5px 2px rgba(0, 0, 0, 0.05), 0 1px 4px rgba(0, 0, 0, 0.04)', '--border-color': '#E5E5EA', '--accent-color': '#007AFF', '--error-color': '#FF3B30', '--label-color': '#666666', '--value-color': '#1c1c1e', '--control-bg': '#EFEFF4', '--control-border': '#D1D1D6', '--control-text': '#1c1c1e', '--control-hover-bg': '#DCDCE0', '--control-active-bg': '#007AFF', '--control-active-text': '#ffffff', '--gradient-start': '#007AFF', '--gradient-mid': '#34A8FF', '--gradient-end': '#007AFF', '--danger-bg-color': 'rgba(255, 59, 48, 0.1)', '--danger-border-color': 'rgba(255, 59, 48, 0.3)', '--danger-text-color': '#FF3B30', '--danger-hover-bg-color': '#FF3B30', '--danger-hover-text-color': '#ffffff' }, chartColors: { hit: 'rgba(0, 122, 255, 0.7)', miss: 'rgba(180, 180, 185, 0.2)', hitBorder: '#007aff', missBorder: '#d1d1d6', text: '#1c1c1e' } }
         };
-        
+
         let visibleCards = JSON.parse(localStorage.getItem('visibleMosdnsCards')) || cacheOrder;
-        
+
         function updateThemeButtons(activeMode) { const themeSelector = document.getElementById('theme-selector'); themeSelector.innerHTML = ''; for (const mode in themeMap) { const theme = themeMap[mode]; const btn = createElement('button', 'control-base-label'); btn.dataset.theme = mode; btn.innerHTML = `<i class="${theme.icon}"></i> ${theme.name}`; if (mode === activeMode) btn.classList.add('active'); btn.addEventListener('click', () => setTheme(mode)); themeSelector.appendChild(btn); } }
         function setTheme(mode) { currentTheme = mode; const root = document.documentElement; const themeVars = themeMap[mode].cssVars; for (const prop in themeVars) { root.style.setProperty(prop, themeVars[prop]); } localStorage.setItem('theme', mode); updateThemeButtons(mode); setTimeout(() => { Object.values(chartInstances).forEach(chart => chart.destroy()); chartInstances = {}; refreshData(true, true); }, 50); }
         async function fetchAPI(url) { try { const r = await fetch(url); if (!r.ok) throw new Error(`网络响应错误: ${r.statusText} (${r.status})`); return await r.json(); } catch (e) { console.error(`Fetch error from ${url}:`, e); return null; } }
         function createCacheCard(tag, title) { const card = createElement('div', 'card'); card.dataset.tag = tag; const h2 = createElement('h2'); h2.append(createElement('i', 'fas fa-server'), createElement('span', 'title-text', title), createElement('span', 'status-dot', '', `status-dot-${tag}`)); const gradientBar = createElement('div', 'card-title-gradient-bar'); const metricsContainer = createElement('div', 'metrics-container', '', `metrics-${tag}`); const chartsContainer = createElement('div', 'charts'); const totalHitChartContainer = createElement('div', 'chart-container'); totalHitChartContainer.appendChild(createElement('canvas', '', '', `chart-hit-${tag}`)); const lazyHitChartContainer = createElement('div', 'chart-container'); lazyHitChartContainer.appendChild(createElement('canvas', '', '', `chart-lazy-${tag}`)); chartsContainer.append(totalHitChartContainer, lazyHitChartContainer); const cardContent = createElement('div', 'card-content'); cardContent.append(metricsContainer, chartsContainer); card.append(h2, gradientBar, cardContent); return card; }
         function createOrUpdatePieChart(id, title, hit, total) { const ctx = document.getElementById(id); if (!ctx) return; const colors = themeMap[currentTheme].chartColors; const data = { labels: ['命中', '未命中'], datasets: [{ data: [hit, Math.max(0, total - hit)], backgroundColor: [colors.hit, colors.miss], borderColor: [colors.hitBorder, colors.missBorder], borderWidth: 1.5 }] }; const options = { plugins: { title: { display: true, text: title, color: colors.text, font: { size: 12, weight: 'bold' } }, datalabels: { color: colors.text } } }; if (chartInstances[id]) { chartInstances[id].data = data; chartInstances[id].options = options; chartInstances[id].update('none'); } else { chartInstances[id] = new Chart(ctx, { type: 'doughnut', data, options }); } }
         function updateMetrics(containerId, metricsData) { const container = document.getElementById(containerId); if (!container) return; container.innerHTML = ''; metricsData.forEach(metric => { const icon = createElement('i', `fas ${iconMap[metric.label] || 'fa-question-circle'}`); const labelContainer = createElement('div', 'metric-label'); labelContainer.append(icon, createElement('span', '', metric.label + ':')); const valueSpan = createElement('span', 'metric-value', (metric.numericValue !== undefined) ? formatNumber(metric.numericValue) : metric.value); if (metric.accent) valueSpan.classList.add('accent'); container.append(labelContainer, valueSpan); }); }
-        function setupCardToggles() { const toggleContainer = document.getElementById('card-toggles'); toggleContainer.innerHTML = ''; cacheOrder.forEach(tag => { const label = createElement('label', 'control-base-label'); const checkbox = createElement('input'); checkbox.type = 'checkbox'; checkbox.dataset.tag = tag; checkbox.checked = visibleCards.includes(tag); checkbox.addEventListener('change', (event) => { const tag = event.target.dataset.tag; if (event.target.checked) { if (!visibleCards.includes(tag)) visibleCards.push(tag); } else { visibleCards = visibleCards.filter(t => t !== tag); } localStorage.setItem('visibleMosdnsCards', JSON.stringify(visibleCards)); refreshData(true, true); }); label.append(checkbox, createElement('span', 'toggle-label-text', cacheTitles[tag])); toggleContainer.appendChild(label); }); }
-        
+        function setupCardToggles() {
+            const toggleContainer = document.getElementById('card-toggles');
+            toggleContainer.innerHTML = '';
+            cacheOrder.forEach(tag => {
+                const label = createElement('label', 'control-base-label');
+                const checkbox = createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.dataset.tag = tag;
+                checkbox.checked = visibleCards.includes(tag);
+                checkbox.addEventListener('change', (event) => {
+                    const tag = event.target.dataset.tag;
+                    if (event.target.checked) {
+                        if (!visibleCards.includes(tag)) visibleCards.push(tag);
+                    } else {
+                        visibleCards = visibleCards.filter(t => t !== tag);
+                    }
+                    localStorage.setItem('visibleMosdnsCards', JSON.stringify(visibleCards));
+                    refreshData(true, true);
+                });
+                label.append(checkbox, createElement('span', 'toggle-label-text', cacheTitles[tag]));
+                toggleContainer.appendChild(label);
+            });
+            // 新增：黑白名单管理按钮
+            const listBtn = createElement('button', 'control-base-label', '黑白名单管理', 'toggle-list-manage-btn');
+            listBtn.style.height = '48px';
+            listBtn.style.minWidth = '140px';
+            listBtn.style.fontSize = '1rem';
+            listBtn.style.fontWeight = '600';
+            listBtn.onclick = function() {
+                document.body.classList.add('list-view-active');
+            };
+            toggleContainer.appendChild(listBtn);
+        }
+
         function startAutoRefresh() { if (autoRefreshTimer) return; autoRefreshTimer = setInterval(() => refreshData(false, true), REFRESH_INTERVAL); }
         function stopAutoRefresh() { if (autoRefreshTimer) { clearInterval(autoRefreshTimer); autoRefreshTimer = null; } }
-        
+
         async function refreshData(forceRebuild = false, updateCharts = false) {
             document.body.classList.add('loading');
             const data = await fetchAPI(API_URL);
             document.body.classList.remove('loading');
-            
+
             if (!data) {
                 stopAutoRefresh();
                 const toggle = document.getElementById('auto-refresh-toggle');
                 if (toggle) toggle.checked = false;
                 localStorage.setItem('autoRefresh', 'false');
-                document.getElementById('main-content').innerHTML = `<div class="error-message"><i class="fas fa-exclamation-triangle"></i><p>无法连接到 MosDNS API。</p><small>请检查后端服务是否运行。</small></div>`;
+                document.getElementById('main-content').innerHTML = `<div class="error-message"><i class="fas fa-exclamation-triangle"></i><p>无法连接到 DNS API。</p><small>请检查后端服务是否运行。</small></div>`;
                 return;
             }
-            
+
+            // 修复：每次刷新都渲染系统信息卡片
+            renderSystemInfoCards(data.system);
+
             if (forceRebuild) {
                 document.getElementById('main-content').innerHTML = '';
                 Object.values(chartInstances).forEach(c => c.destroy());
@@ -333,7 +1327,7 @@
                     }
                 });
             }
-            
+
             cacheOrder.forEach(tag => {
                 const card = document.querySelector(`.card[data-tag="${tag}"]`);
                 if (card) {
@@ -355,53 +1349,211 @@
                     }
                 }
             });
-            
+
             updateMetrics('metrics-system', [
                 { label: '启动时间', value: data.system?.start_time || 'N/A' },
-                { label: 'CPU 时间', value: data.system?.cpu_time || 'N/A' }, 
-                { label: '常驻内存 (RSS)', value: data.system?.resident_memory || 'N/A' },
-                { label: '待用堆内存 (Idle)', value: data.system?.heap_idle_memory || 'N/A' }, 
-                { label: 'Go 版本', value: data.system?.go_version || 'N/A', accent: true },
-                { label: '线程数', numericValue: data.system?.threads || 'N/A' }, 
-                { label: '打开文件描述符', numericValue: data.system?.open_fds || 'N/A' },
+                { label: 'CPU累计处理数据用时', value: data.system?.cpu_time || 'N/A' },
+                { label: '常驻内存', value: data.system?.resident_memory || 'N/A' },
+                { label: '待用堆内存', value: data.system?.heap_idle_memory || 'N/A' },
+                { label: '数据处理进程数', value: data.system?.threads || 'N/A' },
             ]);
-            document.getElementById('last_updated').innerHTML = `<i class="fas fa-clock"></i> 最后更新: ${new Date().toLocaleTimeString()}`;
+            // 更新最后更新时间（现在包含在系统信息卡片中）
+            const lastUpdatedCard = document.getElementById('last_updated');
+            if (lastUpdatedCard) {
+                const valueElement = lastUpdatedCard.querySelector('.system-info-value');
+                if (valueElement) {
+                    valueElement.innerText = new Date().toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).replace(/\//g, '/');
+                }
+            }
         }
 
         function setupEventListeners() {
-            document.getElementById('refresh-now-btn').addEventListener('click', () => refreshData(false, true));
-            document.getElementById('auto-refresh-toggle').addEventListener('change', (event) => {
-                const isEnabled = event.target.checked;
-                localStorage.setItem('autoRefresh', isEnabled.toString());
-                if (isEnabled) startAutoRefresh(); else stopAutoRefresh();
+            // 重启按钮
+            document.getElementById('restart-mosdns-btn').addEventListener('click', () => {
+                if (window.confirm('确定要重启 MosDNS 服务吗？')) {
+                    fetch('/api/restart_mosdns', { method: 'POST' })
+                        .then(r => {
+                            if (!r.ok) {
+                                return r.json().then(err => { throw new Error(err.message || `HTTP ${r.statusText}`) });
+                            }
+                            return r.json();
+                        })
+                        .then(data => {
+                            if (data.success) {
+                                alert('✅ MosDNS 重启命令已发送...');
+                                setTimeout(() => location.reload(), 2000);
+                            } else {
+                                throw new Error(data.message || '未知错误');
+                            }
+                        })
+                        .catch(e => {
+                            console.error('Restart failed:', e);
+                            alert(`重启失败: ${e.message}`);
+                        });
+                }
             });
-            document.getElementById('save-rules-btn').addEventListener('click', () => { const endpoints = ['my_fakeiplist', 'my_nodenov4list', 'my_nodenov6list', 'my_notinlist', 'my_nov4list', 'my_nov6list', 'my_realiplist']; Promise.all(endpoints.map(p => fetch(`/plugins/${p}/save`))).then(() => alert('✅ 分流规则已保存')); });
-            document.getElementById('flush-rules-btn').addEventListener('click', () => { if (window.confirm('确定要清空所有分流规则吗？')) { const endpoints = ['my_fakeiplist', 'my_nodenov4list', 'my_nodenov6list', 'my_notinlist', 'my_nov4list', 'my_nov6list', 'my_realiplist']; Promise.all(endpoints.map(p => fetch(`/plugins/${p}/flush`))).then(() => alert('✅ 分流规则已清空')); } });
-            document.getElementById('restart-mosdns-btn').addEventListener('click', () => { if (window.confirm('确定要重启 mosdns 吗？')) { fetch('/plugins/my_fakeiplist/restartall').then(r => { if (!r.ok) throw new Error(r.statusText); alert('✅ MosDNS 重启命令已发送...'); setTimeout(() => location.reload(), 1000); }).catch(e => alert(`重启失败: ${e.message}`)); } });
-            const ruleBtnMap = { 'show-rules-btn1': 'my_fakeiplist', 'show-rules-btn2': 'my_realiplist', 'show-rules-btn3': 'my_nov4list', 'show-rules-btn4': 'my_nov6list' };
-            for(const id in ruleBtnMap) { document.getElementById(id).addEventListener('click', () => window.open(`/plugins/${ruleBtnMap[id]}/show`, '_blank')); }
-            const cacheBtnMap = { 'show-cache-btn1': 'cache_all', 'show-cache-btn2': 'cache_cn', 'show-cache-btn3': 'cache_google', 'show-cache-btn4': 'cache_node' };
-            for(const id in cacheBtnMap) { document.getElementById(id).addEventListener('click', () => window.open(`/plugins/${cacheBtnMap[id]}/show`, '_blank')); }
-            const tabButtons = document.querySelectorAll('.tab-button');
-            const tabContents = document.querySelectorAll('.tab-content');
-            tabButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    tabButtons.forEach(btn => btn.classList.remove('active')); button.classList.add('active');
-                    tabContents.forEach(content => { content.classList.toggle('active', content.id === `tab-${button.dataset.tab}`); });
+
+            // 手动刷新按钮
+            document.getElementById('refresh-now-btn').addEventListener('click', () => {
+                refreshData(false, true);
+            });
+
+            // 自动刷新开关
+            document.getElementById('auto-refresh-toggle').addEventListener('change', function () {
+                if (this.checked) {
+                    startAutoRefresh();
+                    localStorage.setItem('autoRefresh', 'true');
+                } else {
+                    stopAutoRefresh();
+                    localStorage.setItem('autoRefresh', 'false');
+                }
+            });
+
+            // 外观 Tab 切换
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+                    btn.classList.add('active');
+                    document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
                 });
+            });
+        }
+
+        // 新增：渲染系统信息小卡片
+        function renderSystemInfoCards(system) {
+            const container = document.getElementById('system-info-cards');
+            if (!container) return;
+            container.innerHTML = '';
+            const infoList = [
+                { label: '启动时间', icon: 'fa-power-off', value: system?.start_time || 'N/A' },
+                { label: 'CPU累计处理数据用时', icon: 'fa-microchip', value: system?.cpu_time || 'N/A' },
+                { label: '常驻内存', icon: 'fa-memory', value: system?.resident_memory || 'N/A' },
+                { label: '待用堆内存', icon: 'fa-box-open', value: system?.heap_idle_memory || 'N/A' },
+                { label: '数据处理进程数', icon: 'fa-sitemap', value: system?.threads || 'N/A' },
+                { label: '最后更新', icon: 'fa-clock', value: new Date().toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).replace(/\//g, '/') }
+            ];
+            infoList.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'system-info-card';
+                const label = document.createElement('div');
+                label.className = 'system-info-label';
+                label.innerHTML = `<i class="fas ${item.icon}"></i> ${item.label}`;
+                const value = document.createElement('div');
+                value.className = 'system-info-value';
+                value.innerText = item.value;
+                card.append(label, value);
+                container.appendChild(card);
             });
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             setupEventListeners();
             setupCardToggles();
-            const initialTheme = localStorage.getItem('theme') || 'light';
+            // 默认风格为静谧森林
+            const initialTheme = localStorage.getItem('theme') || 'forest';
             setTheme(initialTheme);
-            const autoRefreshEnabled = (localStorage.getItem('autoRefresh') === 'true');
+            // 自动刷新默认启用
+            let autoRefreshEnabled;
+            if (localStorage.getItem('autoRefresh') === null) {
+                autoRefreshEnabled = true;
+                localStorage.setItem('autoRefresh', 'true');
+            } else {
+                autoRefreshEnabled = (localStorage.getItem('autoRefresh') === 'true');
+            }
             document.getElementById('auto-refresh-toggle').checked = autoRefreshEnabled;
-            refreshData(true, true).then(() => { if (autoRefreshEnabled) startAutoRefresh(); });
+            // 先清理旧定时器再启动
+            stopAutoRefresh();
+            if (autoRefreshEnabled) startAutoRefresh();
+            refreshData(true, true);
+            loadList('blocklist', 'blocklist-editor');
+            loadList('whitelist', 'whitelist-editor');
+            loadList('blockips', 'blockips-editor');
+            // 合并保存按钮
+            document.getElementById('save-lists-btn').onclick = async () => {
+                const blockContent = document.getElementById('blocklist-editor').value;
+                const whiteContent = document.getElementById('whitelist-editor').value;
+                const blockipsContent = document.getElementById('blockips-editor').value;
+                const btn = document.getElementById('save-lists-btn');
+                btn.disabled = true;
+                btn.innerText = '保存中...';
+                let ok = true, msg = '';
+                try {
+                    let r1 = await fetch(`/api/list/blocklist`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:blockContent})});
+                    let d1 = await r1.json();
+                    if(!d1.success) { ok = false; msg += '黑名单保存失败：'+(d1.error||'未知错误')+'\n'; }
+                    let r2 = await fetch(`/api/list/whitelist`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:whiteContent})});
+                    let d2 = await r2.json();
+                    if(!d2.success) { ok = false; msg += '白名单保存失败：'+(d2.error||'未知错误')+'\n'; }
+                    let r3 = await fetch(`/api/list/blockips`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:blockipsContent})});
+                    let d3 = await r3.json();
+                    if(!d3.success) { ok = false; msg += '客户端黑名单保存失败：'+(d3.error||'未知错误'); }
+                } catch(e) { ok = false; msg += e.message; }
+                btn.disabled = false;
+                btn.innerText = '保存并重载';
+                if(ok) { alert('保存成功，MosDNS正在重载...'); } else { alert(msg); }
+            };
+            // 黑白名单管理切换逻辑
+            const toggleBtn = document.getElementById('toggle-list-manage-btn');
+            const listPanel = document.getElementById('list-manage-panel');
+            const mainContentCards = document.getElementById('main-content');
+            const cardToggles = document.getElementById('card-toggles');
+            toggleBtn.onclick = function() {
+                document.body.classList.add('list-view-active');
+            };
+            document.getElementById('back-to-cards-btn').onclick = function() {
+                document.body.classList.remove('list-view-active');
+            };
         });
+
+        // 滚动时header/footer透明
+        function handleStickyFade() {
+            const header = document.querySelector('.header');
+            const footer = document.querySelector('footer');
+            const scrollY = window.scrollY;
+            // 只要页面有滚动就加透明
+            if (scrollY > 0) {
+                header.classList.add('sticky-fade');
+                footer.classList.add('sticky-fade');
+            } else {
+                header.classList.remove('sticky-fade');
+                footer.classList.remove('sticky-fade');
+            }
+        }
+        window.addEventListener('scroll', handleStickyFade);
+
+        // === 名单管理功能 ===
+        async function loadList(listType, editorId) {
+            const r = await fetch(`/api/list/${listType}`);
+            const data = await r.json();
+            if (data.content !== undefined) {
+                document.getElementById(editorId).value = data.content;
+            } else {
+                document.getElementById(editorId).value = '';
+                alert('加载' + listType + '失败：' + (data.error || '未知错误'));
+            }
+        }
+        async function saveList(listType, editorId, btnId) {
+            const content = document.getElementById(editorId).value;
+            const btn = document.getElementById(btnId);
+            btn.disabled = true;
+            btn.innerText = '保存中...';
+            const r = await fetch(`/api/list/${listType}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content })
+            });
+            const data = await r.json();
+            btn.disabled = false;
+            btn.innerText = listType === 'blocklist' ? '保存黑名单' : '保存白名单';
+            if (data.success) {
+                alert('保存成功，MosDNS正在重载...');
+            } else {
+                alert('保存失败：' + (data.error || '未知错误'));
+            }
+        }
         // === END OF FULL, READABLE JAVASCRIPT ===
     </script>
 </body>
+
 </html>

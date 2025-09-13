@@ -1,0 +1,30 @@
+#!/sbin/openrc-run
+
+name="mosdnsui"
+description="MosDNS UI Service"
+command="/usr/local/bin/mosdnsui"
+command_background="yes"
+pidfile="/run/${name}.pid"
+
+# 环境变量设置
+export MOSDNS_ADMIN_URL="http://127.0.0.1:9099"
+export WEB_PORT="5001"
+
+# 依赖关系
+depend() {
+	need net
+	after mosdns
+}
+
+# 启动前检查
+start_pre() {
+	checkpath --directory --owner root:root --mode 0755 /run
+}
+
+# 资源限制
+rlimit_nofile="65535"
+
+# 重启策略
+respawn_delay="5"
+respawn_max="0"
+respawn_period="60"

@@ -1,0 +1,17 @@
+[Unit]
+Description=MosDNS UI Service
+After=network.target
+Wants=mosdns.service
+
+[Service]
+Type=simple
+User=root
+Environment="MOSDNS_ADMIN_URL=http://127.0.0.1:9099"
+Environment="WEB_PORT=5001"
+ExecStart=/usr/local/bin/mosdnsui
+Restart=on-failure
+RestartSec=5
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target
