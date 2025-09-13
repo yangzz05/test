@@ -17,6 +17,6 @@ jobs:
 
     - name: Create release
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.MOSDNS_TOKEN }}
       run: |
         gh release create v0.1
