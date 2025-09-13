@@ -7,10 +7,16 @@ on:
     branches: [ "main" ]
 
 jobs:
-  release-and-tag:
+  build-and-release:
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v4
     - name: mosdnsui
       run: docker build . --file Dockerfile --tag mosdnsui:$(date +%s)
+
+    - name: Create release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh release create v0.1
